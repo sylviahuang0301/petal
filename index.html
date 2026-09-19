@@ -346,6 +346,11 @@ to { opacity: 1; transform: none; }
 .soil-fan .side-r { display: none; }
 .soil-fan .side-l { transform: rotate(-2.5deg); }
 .soil-fan .center { transform: rotate(2deg); max-width: none; max-height: none; padding: 6px 6px 10px; }
+.soil-fan.has-side-pair { flex-direction: column; gap: 14px; }
+.soil-fan.has-side-pair img { width: min(86%, 320px); aspect-ratio: 16 / 9; object-fit: cover; }
+.soil-fan.has-side-pair .side-l { transform: rotate(-1.5deg); }
+.soil-fan.has-side-pair .side-r { display: block; transform: rotate(1.5deg); }
+.soil-fan.has-side-pair .center { display: none; }
 .main-slide-visual { min-height: 300px; padding: 10px 24px 40px; }
 .soil-stats { flex-direction: column; }
 .soil-stats .stat { max-width: none; }
@@ -921,19 +926,19 @@ footer:hover .footer-nav, footer:focus-within .footer-nav { justify-self: start;
             <div class="main-slide-body">
               <div class="soil-id"><span class="dot"></span><span class="mono">Internship 01&ensp;·&ensp;广州工控</span></div>
               <h3 class="soil-title">让世界 500 强的集团 IP，落地成员工日常可用的场景</h3>
-              <div class="soil-role">品牌管理与创新工作室 · 实习生</div>
-              <p>参与集团 IP 衍生品矩阵规划，覆盖商务接待、新员工入职、节庆礼盒等<strong>六类场景</strong>，<strong>独立完成</strong>「对内员工认同 / 对外商务形象」两类需求的视觉与选品逻辑；<strong>独立撰写</strong>集团元宇宙展厅落地可行性报告，为数字化转型梳理落地路径与风险评估；深度参与企业文化节策略，<strong>独立输出</strong>舞美创新方案。</p>
+              <div class="soil-role">品牌管理 · 实习生</div>
+              <p>参与集团 IP「工小控」衍生品矩阵规划，负责面向内部员工、外部商务合作商开展需求调研，并参与选品方案制定；<strong>独立撰写</strong>集团元宇宙展厅落地可行性报告，为数字化转型梳理落地路径与风险评估。</p>
               <div class="soil-stats">
                 <div class="stat a"><span class="lbl">使用场景覆盖</span><b class="num" data-to="6" data-suf=" 类">0 类</b></div>
                 <div class="stat b"><span class="lbl">触达员工</span><b class="num" data-to="3000" data-suf="+">0+</b></div>
               </div>
-              <div class="main-slide-foot"><span class="main-chip">Branding</span><span class="main-chip">Event Planning</span></div>
+              <div class="main-slide-foot"><span class="main-chip">Branding</span><span class="main-chip">Digital Communication</span></div>
             </div>
             <div class="main-slide-visual">
               <span class="main-index">— 01 / 03</span>
-              <div class="soil-fan">
-                <img class="side-l" src="assets/images/case-gongkong2.webp" alt="GIIHG IP 周边" loading="lazy" />
-                <img class="side-r" src="assets/images/case-gongkong2.webp" alt="" aria-hidden="true" loading="lazy" />
+              <div class="soil-fan has-side-pair">
+                <img class="side-l" src="assets/images/case-gongkong-stickers.png" alt="工小控 IP 表情包与贴纸设计" loading="lazy" />
+                <img class="side-r" src="assets/images/case-gongkong-mousepad.png" alt="工小控 IP 鼠标垫实物" loading="lazy" />
                 <img class="center" src="assets/images/case-gongkong.jpg" alt="广州工控企业文化节" loading="lazy" />
               </div>
             </div>
@@ -943,12 +948,11 @@ footer:hover .footer-nav, footer:focus-within .footer-nav { justify-self: start;
               <div class="soil-id"><span class="dot"></span><span class="mono">Internship 02&ensp;·&ensp;南方日报</span></div>
               <h3 class="soil-title">让大湾区的好内容，被首页看见</h3>
               <div class="soil-role">新媒体 · 实习生</div>
-              <p>参与跨部门联合采访，<strong>主笔</strong>大湾区招商推文与人物专访，香港设计师专访获南方+ APP 首页重点推荐；对接粤海集团等核心客户输出商业软文；搭建周度行业内容监测机制。</p>
+              <p>参与跨部门联合采访，主笔人物专访及多篇品牌合作稿件，其中香港设计师专访获<strong>南方+ APP 开屏展示</strong>；对接粤海集团等商业客户，为商业内容生产提供素材支持；迭代周度行业热点监测库，新增舆情案例分析与灵感选题模块，供<strong>5 个核心业务部门</strong>使用。</p>
               <div class="soil-stats">
-                <div class="stat a"><span class="lbl">单篇专访阅读（南方+ 首页推荐）</span><b class="num" data-to="3000" data-suf="+">0+</b></div>
-                <div class="stat b"><span class="lbl">爆款案例复盘</span><b class="num" data-to="60" data-suf="+">0+</b></div>
+                <div class="stat a"><span class="lbl">双平台总阅读量</span><b class="num" data-to="6000" data-suf="+">0+</b></div>
               </div>
-              <div class="main-slide-foot"><span class="main-chip">Content</span><span class="main-chip">New Media</span></div>
+              <div class="main-slide-foot"><span class="main-chip">Copywriting</span><span class="main-chip">Market Research</span></div>
             </div>
             <div class="main-slide-visual">
               <span class="main-index">— 02 / 03</span>
@@ -964,17 +968,17 @@ footer:hover .footer-nav, footer:focus-within .footer-nav { justify-self: start;
               <div class="soil-id"><span class="dot"></span><span class="mono">Internship 03&ensp;·&ensp;广州广电传媒集团</span></div>
               <h3 class="soil-title">把一场城市级赛事的启动仪式，办成传播事件</h3>
               <div class="soil-role">品牌推广 · 实习生</div>
-              <p>参与统筹「羊城印象」广州国际微电影大赛启动仪式，<strong>负责现场流程策划方案</strong>，活动获多家主流媒体报道；针对「潮墟」非遗产品视频号直播，指出原流程与带货目标的错位，提出流程调整方案并落地执行。</p>
+              <p>基于业务目标复盘现有直播内容，提出<strong>「文化工艺展示 + 消费场景融合」</strong>的内容迭代方向，形成直播优化提案；参与「羊城印象广州微电影大赛」启动仪式筹备，负责方案梳理、执行细节校对及现场调整；活动获得多家主流媒体公开报道。</p>
               <div class="soil-stats">
                 <div class="stat a"><span class="lbl">羊城印象微电影大赛</span><b class="num" data-to="10" data-suf="th">0th</b></div>
               </div>
-              <div class="main-slide-foot"><span class="main-chip">Event Marketing</span><span class="main-chip">PR</span></div>
+              <div class="main-slide-foot"><span class="main-chip">Live Streaming</span><span class="main-chip">Event Planning &amp; Execution</span></div>
             </div>
             <div class="main-slide-visual">
               <span class="main-index">— 03 / 03</span>
-              <div class="soil-fan">
-                <img class="side-l" src="assets/images/case-gztv2.webp" alt="颁奖仪式" loading="lazy" />
-                <img class="side-r" src="assets/images/case-gztv2.webp" alt="" aria-hidden="true" loading="lazy" />
+              <div class="soil-fan has-side-pair">
+                <img class="side-l" src="assets/images/case-gztv-craft.png" alt="潮墟非遗产品展示" loading="lazy" />
+                <img class="side-r" src="assets/images/case-gztv-exhibition.png" alt="潮墟非遗文创展位" loading="lazy" />
                 <img class="center" src="assets/images/case-gztv.jpg" alt="羊城印象微电影大赛" loading="lazy" />
               </div>
             </div>
@@ -1004,16 +1008,16 @@ footer:hover .footer-nav, footer:focus-within .footer-nav { justify-self: start;
         <div class="pj-name">奥利奥跨文化整合营销全案 · Strategic Advertising Campaign</div>
         <div class="project-grid">
           <div class="project-desc">
-            <p class="pj-lede"><b>洞察</b>针对奥利奥在华「经典但传统」的品牌认知与 18–30 岁核心女性群体渗透饱和，回收 <strong>400+ 份问卷</strong>，识别出受众「情感补偿」高于「生理饱腹」的深层动机。</p>
-            <p class="pj-lede"><b>策略</b>将核心定位为<strong>「情绪疗愈 + 轻社交仪式感」</strong>，为视觉审美与媒介选择提供底层逻辑支撑。</p>
-            <p class="pj-lede"><b>执行</b>独立规划「蓄水—引爆—长尾」三阶段全链路传播策略，构建分层 KOL/KOC 矩阵，创新引入 ASMR 沉浸式感官营销，并配合明星直播间流量转化逻辑，完成从社交声量到消费心智的闭环。</p>
+            <p class="pj-lede"><b>Research</b>主导 <strong>400+ 份</strong>一手问卷调研与二手资料交叉验证，识别「品类认知不足」与「品牌形象老化」两大核心痛点；通过「品类-竞品-品牌画像」确定目标受众，为 Big Idea「Multi-layered Healing」提供洞察依据。</p>
+            <p class="pj-lede"><b>KOL Matrix</b>基于模拟预算，为三大平台规划 <strong>103 位达人矩阵</strong>；确立「头部引爆（31%）、腰部种草（44.5%）、尾部/KOC 口碑（6%）」的橄榄型结构，并输出 50% 预算压缩情景下的配置优化方案。</p>
+            <p class="pj-lede"><b>Team Leadership</b>统筹 5 人团队分工、任务拆解、进度管控；负责组织每周导师沟通。</p>
             <div class="pj-stats">
               <div class="stat a"><span class="lbl">12 支团队中排名</span><b class="num">第 1</b></div>
               <div class="stat b"><span class="lbl">回收问卷份数</span><b class="num" data-to="400" data-suf="+">400+</b></div>
             </div>
             <div class="project-facts">
               <div><label>Role</label><div class="fval">Leader</div></div>
-              <div><label>Tools</label><div class="fval">SPSS（数据分析）, Canva, PS</div></div>
+              <div><label>Tools</label><div class="fval">Canva, PS</div></div>
               <div><label>Duration</label><div class="fval">5 Months</div></div>
               <div><label>Outcome</label><div class="fval">年度最佳项目奖 &amp; A 评级（留校示范案例）</div></div>
             </div>
@@ -1032,12 +1036,13 @@ footer:hover .footer-nav, footer:focus-within .footer-nav { justify-self: start;
       <article class="pstack-card">
         <span class="pstack-bignum">02</span>
         <div class="pj-head"><div class="project-tag">PROJECT · 02 · ONGOING</div><span class="pcap-chip">内容与社媒运营</span></div>
-        <h3>零起点账号，单篇收获 1.4 万浏览</h3>
-        <div class="pj-name">视觉与文字的创作练习 · 个人社媒图文孵化 · Photography &amp; Copywriting</div>
+        <h3>「交换世界计划」：个人内容账号的从 0 到 1 探索</h3>
+        <div class="pj-name">Photography &amp; Content Creation</div>
         <div class="project-grid">
           <div class="project-desc">
-            <p>独立运营个人图文自媒体 3 个月，作为视觉记录与审美表达的载体，持续产出不同地域的人文图文摄影内容。</p>
-            <p><strong>核心能力体现：</strong>擅长基于不同社媒生态，用文案辅助视觉叙事。将个人审美转化为具备吸引力的社媒图文资产。</p>
+            <p class="pj-lede"><b>Position</b>独立运营个人内容账号，明确账号定位与受众。以旅行摄影为载体，探索城市文化、社会观察与生活方式议题，完成从选题策划、视觉制作到文案输出的全流程闭环。</p>
+            <p class="pj-lede"><b>Content</b>策划「交换世界计划」系列，探索将目的地素材从传统旅行记录，转化为「场景观察—议题提炼—视觉叙事—观点表达」的深度内容结构，逐步沉淀具有个人辨识度的内容风格。</p>
+            <p class="pj-lede"><b>Data Review</b>保持内容敏感度，基于数据反馈进行选题复盘与迭代。</p>
             <div class="pj-stats">
               <div class="stat a"><span class="lbl">单篇最高浏览</span><b class="num" data-to="1.4" data-dec="1" data-suf="万+">1.4万+</b></div>
               <div class="stat b"><span class="lbl">单篇最高点赞</span><b class="num" data-to="1200" data-suf="+">1200+</b></div>
@@ -1056,7 +1061,7 @@ footer:hover .footer-nav, footer:focus-within .footer-nav { justify-self: start;
           </div>
           <div class="project-meta-list">
             <div class="meta-row"><label>Role</label><div class="val">Content Creator</div></div>
-            <div class="meta-row"><label>Core Skills</label><div class="val">Photography, Copywriting</div></div>
+            <div class="meta-row"><label>Core Skills</label><div class="val">Visual Storytelling, Content Strategy<br />Photography, Copywriting</div></div>
           </div>
         </div>
       </article>
@@ -1151,19 +1156,17 @@ footer:hover .footer-nav, footer:focus-within .footer-nav { justify-self: start;
       <article class="pstack-card pstack-card--compact">
         <span class="pstack-bignum">04</span>
         <div class="pj-head"><div class="project-tag">PROJECT · 04 · 2022–2024</div><span class="pcap-chip">品牌活动策划</span></div>
-        <h3>十余场百人级活动的统筹执行与朋辈导师实践</h3>
-        <div class="pj-name">北师香港浸会大学 · 杰出朋辈导师 / 专业学生会成员 · 2022.06 – 2024.06</div>
+        <h3>50 名新生的朋辈导师：适应性工作坊策划与落地</h3>
+        <div class="pj-name">北师香港浸会大学 · 杰出朋辈导师 · 2022.06 – 2024.06</div>
         <div class="project-grid">
           <div class="project-desc">
-            <p>担任 20 名新生学业导师，策划适应性工作坊，满意度 100%，获评学院年度杰出导师；统筹落地 6 场百人级大型活动。</p>
+            <p>担任 50 名新生的朋辈导师，主导策划新生适应性工作坊，定期开展活动与教授交流会，并围绕专业问题提供引导与支持。</p>
             <div class="pj-stats">
               <div class="stat a"><span class="lbl">工作坊满意度</span><b class="num" data-to="100" data-suf="%">100%</b></div>
-              <div class="stat b"><span class="lbl">百人级活动统筹场次</span><b class="num" data-to="6">6</b></div>
             </div>
           </div>
           <div class="project-meta-list">
-            <div class="meta-row"><label>Role</label><div class="val">Peer Mentor · Student Union</div></div>
-            <div class="meta-row"><label>Scope</label><div class="val">20 名新生 · 6 场活动</div></div>
+            <div class="meta-row"><label>Role</label><div class="val">Peer Mentor</div></div>
             <div class="meta-row"><label>Honour</label><div class="val">学院年度杰出朋辈导师</div></div>
           </div>
         </div>
@@ -1185,7 +1188,7 @@ footer:hover .footer-nav, footer:focus-within .footer-nav { justify-self: start;
       <div class="check-group">
         <div class="check-group-label">Skills</div>
         <div class="check-item"><span class="check-box">✓</span><span class="check-name">Vibe Coding</span><span class="check-note">本站由我与 AI 协作构建</span></div>
-        <div class="check-item"><span class="check-box">✓</span><span class="check-name">AI Models</span><span class="check-note">Claude · Gemini · ChatGPT 商业洞察应用</span></div>
+        <div class="check-item"><span class="check-box">✓</span><span class="check-name">AI Models</span><span class="check-note">辅助竞品研究、资料归纳、内容创意与方案迭代</span></div>
         <div class="check-item"><span class="check-box">✓</span><span class="check-name">NotebookLM</span><span class="check-note">知识管理与研究工作流</span></div>
         <div class="check-item"><span class="check-box">✓</span><span class="check-name">Midjourney</span><span class="check-note">AI 生成式视觉探索</span></div>
         <div class="check-item"><span class="check-box">✓</span><span class="check-name">Canva</span><span class="check-note">品牌物料快速产出</span></div>
@@ -1304,7 +1307,7 @@ footer:hover .footer-nav, footer:focus-within .footer-nav { justify-self: start;
           </div>
           <div class="r-rule dashed"></div>
           <div class="tw-bottom">
-            <a class="tw-btn" id="twBtn" href="https://docs.google.com/document/d/1nPMmJDUSJREGs8Lh94sg7nsBAPrXaIEr/edit?usp=sharing&amp;ouid=102384914108925413369&amp;rtpof=true&amp;sd=true" target="_blank" rel="noopener">Take a Petal ↗</a>
+            <a class="tw-btn" id="twBtn" href="assets/files/Huang-Suihua-Resume.pdf" target="_blank" rel="noopener">Take a Petal ↗</a>
             <div class="r-thanks">★ Thank you for stopping by ★</div>
           </div>
         </div>
