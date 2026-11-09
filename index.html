@@ -8,7 +8,26 @@
      于是「滚到某屏 → 刷新」就不再停在封面。必须赶在浏览器执行还原之前设成 manual,所以这段放在 head 最前。
      带 #hash 的深链接不干预,保证分享链接与站内导航锚点照常工作。 */
   if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
-  if (!location.hash) {
+  var __returnOffsetText = new URLSearchParams(location.search).get('restoreUnfolding');
+  var __returnOffset = __returnOffsetText !== null && /^-?\d+$/.test(__returnOffsetText) ? Number(__returnOffsetText) : null;
+  if (__returnOffset !== null && Number.isFinite(__returnOffset)) {
+    // 返回作品集时先定位再显示页面，避免从封面平滑滚到作品区。
+    document.documentElement.style.visibility = 'hidden';
+    document.documentElement.style.scrollBehavior = 'auto';
+    var __restoreUnfolding = function(){
+      var section = document.getElementById('unfolding');
+      if (section) window.scrollTo({ top: Math.max(0, scrollY + section.getBoundingClientRect().top + __returnOffset), behavior: 'instant' });
+    };
+    addEventListener('DOMContentLoaded', function(){
+      __restoreUnfolding();
+      requestAnimationFrame(function(){
+        __restoreUnfolding();
+        document.documentElement.style.visibility = '';
+        document.documentElement.style.scrollBehavior = '';
+      });
+    }, { once: true });
+    addEventListener('load', __restoreUnfolding, { once: true });
+  } else if (!location.hash) {
     var __userScrolled = false;
     var __mark = function(){ __userScrolled = true; };
     ['wheel','touchmove','keydown','pointerdown'].forEach(function(e){
@@ -39,7 +58,7 @@
   <meta name="twitter:title" content="Petal — Sylvie Huang 黄穗华" />
   <meta name="twitter:description" content="整合营销传播 / 内容与社媒运营 / 品牌活动策划。Distinct in detail, complete in bloom." />
   <meta name="twitter:image" content="https://sylviehuang.com/assets/images/og-cover.jpg" />
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600&family=DM+Mono:wght@400;500&family=Spectral:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet">
+  <link href="assets/fonts/google-local.css" rel="stylesheet">
   <style>
 @font-face { font-family: 'FakeReceipt'; src: url('assets/fonts/FAKE_RECEIPT.OTF') format('opentype'); font-display: swap; }
 @font-face { font-family: 'Typewr'; src: url('assets/fonts/TYPEWR.TTF') format('truetype'); font-display: swap; }
@@ -79,8 +98,15 @@ body::before { content: ''; position: fixed; inset: 0; background-image: radial-
 .hero-ripple canvas { display: block; width: 100%; height: 100%; }
 .hero-bg-overlay { position: absolute; inset: 0; z-index: -1; background: linear-gradient(to bottom, rgba(0,0,0,0) 70%, rgba(243,241,233,0.45) 88%, var(--paper) 100%); }
 .hero-content { text-align: center; position: relative; z-index: 5; max-width: 1100px; margin-bottom: 30vh; mix-blend-mode: screen; }
+.hero-tilt { width: fit-content; max-width: 100%; margin: 0 auto; transform-origin: 50% 52%; }
+@media (min-width: 821px) and (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .hero-tilt { will-change: transform; transition: transform .42s cubic-bezier(.22,.7,.3,1); }
+}
 .hero-title-img { width: clamp(300px, 47vw, 640px); height: auto; display: block; margin: 0 auto; opacity: 0; transform: translateY(22px) scale(0.965); animation: heroTitleIn 1.6s cubic-bezier(0.2,0.8,0.3,1) 0.5s forwards; }
 @keyframes heroTitleIn { to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-title-img { animation: none; opacity: 1; transform: none; }
 }
 @keyframes fadeIn { to { opacity: 1; }
 }
@@ -91,14 +117,19 @@ body::before { content: ''; position: fixed; inset: 0; background-image: radial-
 50% { transform: translateY(6px); }
 }
 .section { max-width: 1280px; margin: 0 auto; padding:  120px 40px; position: relative; }
-#mains, #specials, #sides, #offhours, #checkout { max-width: none; border-radius: 28px 28px 0 0; margin-top: -34px; position: relative; z-index: 5; }
-#mains > *, #specials > *, #sides > *, #offhours > *, #checkout > * { max-width: 1200px; margin-left: auto; margin-right: auto; }
+#mains, #specials, #unfolding, #sides, #offhours, #checkout { max-width: none; border-radius: 28px 28px 0 0; margin-top: -34px; position: relative; z-index: 5; }
+#mains, #specials, #unfolding, #sides, #offhours, #checkout, #starters {
+  border-top: 1px solid rgba(78,66,55,0.08);
+  box-shadow: 0 -12px 28px rgba(62,54,45,0.04);
+}
+#mains > *, #specials > *, #unfolding > *, #sides > *, #offhours > *, #checkout > * { max-width: 1200px; margin-left: auto; margin-right: auto; }
 #mains > .mains-carousel { max-width: none; }
 #mains { background: #E4E0D1; }
 #specials { background: var(--paper-2); }
-#sides { background: var(--paper); }
+#unfolding { background: var(--paper); }
+#sides { background: #E9E4D8; }
 #offhours { background: var(--paper); }
-#checkout { background: var(--paper); }
+#checkout { background: #E8E4D8; }
 .section-header { display: block; margin-bottom: 60px; position: relative; }
 #mains .section-header { text-align: right; }
 #sides .section-header { text-align: center; }
@@ -113,7 +144,6 @@ body::before { content: ''; position: fixed; inset: 0; background-image: radial-
 to { clip-path: inset(-10% 0 -12% 0); transform: none; }
 }
 .section-name-sub { font-family: 'Noto Serif SC', serif; font-weight: 400; font-size: clamp(14px, 1.4vw, 18px); color: var(--muted); margin-left: 12px; letter-spacing: 0.12em; vertical-align: super; white-space: nowrap; }
-.section-divider { display: none; }
 #mains .section-num { text-align: right; }
 #sides .section-num { text-align: center; }
 .section-num { display: block; font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 0.3em; color: var(--accent); margin-bottom: 14px; }
@@ -158,7 +188,7 @@ to { clip-path: inset(-10% 0 -12% 0); transform: none; }
 .lanyard-meta { display: flex; justify-content: center; align-items: baseline; margin-top: 11px; padding: 0 2px; }
 .lanyard-name { font-family: 'Typewr', 'Noto Serif SC', serif; font-size: 16px; letter-spacing: 0.06em; text-transform: uppercase; line-height: 1; }
 #manifesto { position: relative; z-index: 5; margin-top: -60px; background: var(--paper); border-radius: 28px 28px 0 0; box-shadow: 0 -30px 60px rgba(0,0,0,0.06); }
-#starters { max-width: none; border-radius: 28px 28px 0 0; margin-top: -34px; position: relative; z-index: 5; background: var(--paper); }
+#starters { max-width: none; border-radius: 28px 28px 0 0; margin-top: -34px; position: relative; z-index: 5; background: #EEECE3; }
 #starters > * { max-width: 1200px; margin-left: auto; margin-right: auto; }
 .section-sub { font-family: 'Noto Serif SC', serif; font-weight: 400; font-size: clamp(13px, 1.3vw, 15px); color: var(--muted); letter-spacing: 0.08em; margin-top: 16px; }
 .manifesto-body { max-width: 860px; margin: 0 auto; text-align: center; }
@@ -186,7 +216,8 @@ to { clip-path: inset(-10% 0 -12% 0); transform: none; }
 .core .row.r1{justify-content:flex-start;padding-left:4%}
 .core .row.r2{justify-content:flex-end;padding-right:6%}
 .core .row.r3{justify-content:flex-start;padding-left:10%}
-.core .card{width:min(400px,44%);border:1.5px solid rgba(82,70,59,.75); border-radius:20px;padding:28px 28px 34px; opacity:0;transform:translateY(22px); transition:opacity .65s ease,transform .75s cubic-bezier(.2,.85,.25,1)}
+.core .card{width:min(400px,44%);border:1.5px solid rgba(82,70,59,.75); border-radius:20px;padding:28px 28px 34px; transition:opacity .65s ease,transform .75s cubic-bezier(.2,.85,.25,1)}
+.core.is-animated .card{opacity:0;transform:translateY(22px)}
 .core .card.show{opacity:1}
 .core .row.r1 .card{background:var(--c1)}
 .core .row.r1 .card.show{transform:translateY(0) rotate(-.9deg)}
@@ -300,12 +331,16 @@ to { opacity: 1; transform: none; }
 .main-slide { flex: 0 0 var(--pane-w, calc(100% - 2 * var(--peek))); width: var(--pane-w, calc(100% - 2 * var(--peek))); height: var(--pane-h); display: grid; grid-template-columns: 1.25fr 1fr; background: #FDFBF6; border: none; border-radius: 0; box-shadow: none; opacity: 0.55; transition: opacity 0.2s ease-out; }
 .main-slide.is-current { opacity: 1; }
 .main-slide-body { padding: 48px; display: flex; flex-direction: column; min-width: 0; overflow: visible; }
+.main-slide:has(.soil-links) .main-slide-body { overflow-y: auto; }
 .soil-id { display: flex; align-items: center; gap: 12px; }
 .soil-id .dot { width: 18px; height: 18px; border-radius: 50%; background: #6E7C3C; flex: none; }
 .soil-id .mono { font-family: 'DM Mono', 'Noto Serif SC', monospace; font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--soft-ink); }
 .soil-title { margin-top: 24px; font-family: 'Spectral', 'Noto Serif SC', serif; font-weight: 400; font-size: clamp(30px, 2.55vw, 40px); line-height: 1.28; color: var(--ink); max-width: 16.5em; text-wrap: pretty; }
 .soil-role { margin-top: 18px; align-self: flex-start; padding-bottom: 6px; border-bottom: 1px solid #6E7C3C; font-family: 'DM Mono', 'Noto Serif SC', monospace; font-size: 11px; letter-spacing: 0.12em; color: var(--muted); }
 .main-slide p { font-family: 'Noto Serif SC', serif; font-weight: 400; font-size: 14px; line-height: 1.9; color: var(--soft-ink); margin-top: 20px; max-width: 56ch; min-height: 0; }
+.soil-links { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 14px; }
+.soil-links a { font-family: 'DM Mono', 'Noto Serif SC', monospace; font-size: 11px; letter-spacing: 0.04em; color: var(--accent); text-decoration: none; border-bottom: 1px solid currentColor; padding: 3px 0; }
+.soil-links a:hover, .soil-links a:focus-visible { color: var(--ink); }
 .soil-stats { display: flex; gap: 12px; margin-top: 24px; }
 .soil-stats .stat { flex: 1; max-width: 250px; padding: 15px 18px 13px; }
 .soil-stats .stat.a { background: #DDE4CB; }
@@ -341,6 +376,7 @@ to { opacity: 1; transform: none; }
 .mains-swipe .msw-dots i { width: 5px; height: 5px; border-radius: 50%; background: var(--muted); opacity: 0.5; }
 .mains-swipe .msw-dots i.on { background: var(--accent); opacity: 1; }
 .main-slide { grid-template-columns: 1fr; opacity: 1; }
+.main-slide:has(.soil-links) .main-slide-body { overflow-y: visible; }
 .soil-fan { position: static; display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 10px; padding: 4px 0; }
 .soil-fan img { position: static; max-width: none; max-height: none; width: 47%; aspect-ratio: 3 / 4; object-fit: cover; }
 .soil-fan .side-r { display: none; }
@@ -371,11 +407,88 @@ to { opacity: 1; transform: none; }
 .main-index { position: absolute; top: 26px; right: 30px; font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 0.2em; color: var(--muted); }
 .mains-controls { display: flex; align-items: center; justify-content: space-between; margin-top: 24px; }
 .specials-intro { font-family: 'Spectral', 'Noto Serif SC', serif; font-style: italic; font-size: 16px; color: var(--muted); margin-bottom: 40px; }
+/* The Unfolding: two quiet, poster-like entrances to the works. */
+#unfolding { padding-top: 54px; padding-bottom: 72px; scroll-margin-top: 98px; }
+#unfolding .section-header { max-width: 520px; text-align: left; margin-bottom: 22px; }
+#unfolding .section-num { margin-bottom: 7px; }
+#unfolding .section-name { font-size: clamp(36px, 3.8vw, 44px); line-height: 1.08; }
+#unfolding .section-name-sub { display: inline; margin-left: 14px; font-size: 14px; line-height: 1.5; vertical-align: baseline; }
+#unfolding .section-sub { margin-top: 10px; line-height: 1.7; }
+.unfold-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(22px, 3vw, 28px); max-width: 520px !important; }
+.unfold-card { display: block; width: 100%; min-width: 0; padding: 0; border: 0; background: none; color: var(--ink); text-decoration: none; text-align: left; font: inherit; cursor: pointer; transition: opacity .35s ease, transform .35s ease; }
+.unfold-cover { position: relative; width: 100%; aspect-ratio: 3 / 4; overflow: hidden; background: #FDFBF6; border: 1px solid rgba(78,66,55,.15); box-shadow: 0 12px 30px rgba(62,54,45,.08); transition: box-shadow .35s ease, transform .35s ease; }
+.unfold-cover--closer { background: linear-gradient(#e9e5d8cc 0%, #c9d6cf44 46%, #537e8940 100%), url('a-little-closer/assets/sea-background.webp') center 55% / cover no-repeat; }
+.unfold-reel { position: absolute; width: 87%; aspect-ratio: 1; left: 50%; top: 48%; transform: translate(-50%, -50%) rotate(calc(var(--scroll-turn, 0deg) + var(--hover-turn, 0deg))); container-type: inline-size; border-radius: 50%; background: radial-gradient(ellipse at 30% 22%, #fffef0 0, #f6f4e3 45%, #ecebd6 89%, #dedfc7 100%); box-shadow: 0 12px 24px #263b4336, inset 0 0 20px #ae9b4d1a, 0 0 0 1px #c9c9ac55; transition: transform .55s cubic-bezier(.22,.8,.3,1); }
+.unfold-reel::before { content: ''; position: absolute; inset: 0; border-radius: inherit; opacity: .18; pointer-events: none; background: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.45' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Cpath fill='%238a9072' filter='url(%23p)' opacity='.27' d='M0 0h200v200H0z'/%3E%3C/svg%3E"); }
+.unfold-frame { position: absolute; left: 50%; top: 50%; width: 13.7%; height: 13.7%; transform: translate(-50%, -50%) rotate(var(--a)) translateY(-279%); border-radius: 12%; overflow: hidden; background: #dfe2d5; }
+.unfold-frame img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.unfold-reel-hole { position: absolute; left: 50%; top: 50%; width: 2.2%; height: 4.4%; transform: translate(-50%, -50%) rotate(var(--a)) translateY(-1030%); border-radius: 2px; background: #638a987d; box-shadow: inset 0 1px 2px #263b4360; }
+.unfold-reel-mark, .unfold-reel-label { position: absolute; left: 50%; top: 50%; text-align: center; }
+.unfold-reel-mark { color: #494c3d; font: bold 3cqw/1 Georgia, serif; transform: translate(-50%, -50%) rotate(var(--a)) translateY(-29cqw); }
+.unfold-reel-label { width: 16%; color: #668da1; font: 1.45cqw/1.2 'DM Mono', monospace; transform: translate(-50%, -50%) rotate(var(--a)) translateY(-26cqw); }
+.unfold-reel-arrow { position: absolute; left: 50%; transform: translateX(-50%); color: #424b3e; font: bold 9cqw/1 Georgia, serif; }
+.unfold-reel-arrow--top { top: 18%; }
+.unfold-reel-arrow--bottom { bottom: 16%; }
+.unfold-reel-hub { position: absolute; inset: 33% 27%; display: flex; align-items: center; justify-content: center; flex-direction: column; text-align: center; color: #48758e; }
+.unfold-reel-hub small { font: 2cqw/1.4 'DM Mono', monospace; letter-spacing: .12cqw; white-space: nowrap; }
+.unfold-reel-hub strong { font: 900 8cqw/.84 Georgia, 'Times New Roman', serif; letter-spacing: -.4cqw; transform: scaleX(.8); margin: 2cqw 0 1.5cqw; }
+.unfold-reel-hub i { display: block; width: 11%; aspect-ratio: 1; border-radius: 50%; background: #829da888; box-shadow: inset 1px 2px 2px #263b4360; margin: 1cqw 0; }
+.unfold-reel-hub em { font: normal 1.7cqw/1.4 'DM Mono', monospace; letter-spacing: .08cqw; white-space: nowrap; }
+.unfold-cover--tenerife > img { display: block; width: 100%; height: 100%; object-fit: contain; }
+.unfold-corner { position: absolute; width: 22px; height: 22px; opacity: 0; border-color: var(--accent); border-style: solid; transition: opacity .3s ease; pointer-events: none; }
+.unfold-corner--tl { top: 11px; left: 11px; border-width: 1px 0 0 1px; }
+.unfold-corner--tr { top: 11px; right: 11px; border-width: 1px 1px 0 0; }
+.unfold-corner--bl { bottom: 11px; left: 11px; border-width: 0 0 1px 1px; }
+.unfold-corner--br { bottom: 11px; right: 11px; border-width: 0 1px 1px 0; }
+.unfold-meta { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding-top: 16px; border-top: 1px solid var(--light-line); margin-top: 18px; }
+.unfold-meta strong { font-family: 'Spectral', 'Noto Serif SC', serif; font-weight: 400; font-size: clamp(19px, 2.2vw, 26px); line-height: 1.25; }
+.unfold-meta span { font-family: 'DM Mono', 'Noto Serif SC', monospace; font-size: 10px; letter-spacing: .08em; white-space: nowrap; color: var(--accent); }
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .unfold-grid:has(.unfold-card:hover) .unfold-card:not(:hover) { opacity: .5; }
+  .unfold-card:hover .unfold-cover { transform: translateY(-5px); box-shadow: 0 20px 38px rgba(62,54,45,.14); }
+  .unfold-card:hover .unfold-reel { --hover-turn: 8deg; }
+  .unfold-card:hover .unfold-corner { opacity: 1; }
+}
+.unfold-card.motion-in { animation: unfoldIn .7s cubic-bezier(.22,.8,.3,1) backwards; }
+.unfold-card.motion-in:nth-child(2) { animation-delay: .13s; }
+@keyframes unfoldIn { from { opacity: .65; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+.unfold-card:focus-visible { outline: 2px solid var(--accent); outline-offset: 7px; }
+.unfold-card:focus-visible .unfold-corner { opacity: 1; }
+@media (max-width: 700px) {
+  #unfolding { padding-top: 70px; padding-bottom: 76px; scroll-margin-top: 54px; }
+  #unfolding .section-header { max-width: 320px; margin-bottom: 28px; }
+  #unfolding .section-name { font-size: clamp(34px, 9vw, 42px); }
+  #unfolding .section-name-sub { display: block; margin: 9px 0 0; }
+  .unfold-grid { grid-template-columns: minmax(0, 1fr); gap: 40px; max-width: 320px !important; }
+  .unfold-meta strong { font-size: 23px; }
+  .unfold-card.motion-in { animation-duration: .45s; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .unfold-card.motion-in, .unfold-card.motion-in:nth-child(2) { animation: none; }
+  .unfold-reel { transition: none; }
+}
+.unfold-poster-dialog { width: min(92vw, calc(69dvh - 37px), 700px); max-width: none; max-height: 92dvh; margin: auto; padding: 0; border: 1px solid rgba(78,66,55,.2); background: #FDFBF6; color: var(--ink); box-shadow: 0 24px 70px rgba(20,18,15,.28); overflow: hidden; }
+.unfold-poster-dialog::backdrop { background: rgba(20,18,15,.74); backdrop-filter: blur(5px); }
+.unfold-poster-head { min-height: 60px; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 8px 14px 8px 22px; border-bottom: 1px solid var(--light-line); }
+.unfold-poster-head span { font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: .1em; color: var(--soft-ink); }
+.unfold-poster-close { width: 44px; height: 44px; flex: none; border: 0; border-radius: 50%; background: transparent; color: var(--ink); font: 27px/1 'Spectral', serif; cursor: pointer; }
+.unfold-poster-close:hover, .unfold-poster-close:focus-visible { background: var(--paper-2); outline: none; }
+.unfold-poster-body { display: grid; place-items: center; max-height: calc(92dvh - 60px); padding: 16px; overflow: auto; }
+.unfold-poster-body img { display: block; width: auto; height: auto; max-width: 100%; max-height: calc(92dvh - 92px); object-fit: contain; }
+body:has(.unfold-poster-dialog[open]) { overflow: hidden; }
+@media (max-width: 700px) {
+  .unfold-poster-dialog { width: calc(100vw - 24px); }
+  .unfold-poster-head { padding-left: 16px; }
+  .unfold-poster-body { padding: 10px; }
+  .unfold-poster-body img { max-height: calc(92dvh - 80px); }
+}
 .folder-stack { position: relative; max-width: 1200px; margin: 0 auto; overflow: visible; }
 .folder-stack.stack-on .pstack-stage { position: sticky; top: 8vh; height: 84vh; }
 /* 底部原为 12px,「查看路径图」按钮几乎贴着卡片圆角(上留 40px 下留 13px,明显失衡)。
    四张卡在 84vh 上限下均有 200px 以上余量,加大下内边距不会触发 overflow 裁切。 */
 .folder-stack.stack-on .pstack-card { position: absolute; inset: 0 0 auto 0; max-height: 84vh; overflow: hidden; margin-bottom: 0; transform-origin: 50% 50%; padding: 18px 44px 30px; }
+.folder-stack.stack-on .pstack-card:first-child { overflow-y: auto; scrollbar-width: none; -ms-overflow-style: none; }
+.folder-stack.stack-on .pstack-card:first-child::-webkit-scrollbar { display: none; }
 .folder-stack.stack-on .pstack-card .project-desc p { font-size: 13px; line-height: 1.7; margin-bottom: 7px; }
 .folder-stack.stack-on .pstack-card h3 { font-size: clamp(17px, 1.85vw, 22px); line-height: 1.26; margin-bottom: 5px; }
 .folder-stack.stack-on .pstack-card .project-tag { margin-bottom: 10px; }
@@ -415,6 +528,7 @@ to { opacity: 1; transform: none; }
 @media (max-width: 768px) { .folder-stack.stack-on { height: auto !important; }
 .folder-stack.stack-on .pstack-stage { position: static; height: auto; }
 .folder-stack.stack-on .pstack-card { position: relative; inset: auto; max-height: none; overflow: visible; margin-bottom: 40px; padding: 26px 20px 22px; }
+.folder-stack.stack-on .pstack-card:first-child { overflow: visible; }
 .folder-stack.stack-off .pstack-card, .folder-stack.stack-on .pstack-card { margin-bottom: 0; border-radius: 20px 20px 16px 16px; box-shadow: 0 -10px 26px -8px rgba(62,54,45,0.16), 0 18px 34px -26px rgba(62,54,45,0.4); }
 .folder-stack.stack-off .pstack-card + .pstack-card, .folder-stack.stack-on .pstack-card + .pstack-card { margin-top: -18px; }
 .folder-stack.stack-off .pstack-card, .folder-stack.stack-on .pstack-card { opacity: 0 !important; transform: translateY(30px) scale(0.988) !important; transition: opacity 0.65s ease, transform 0.85s cubic-bezier(0.2,0.8,0.3,1); }
@@ -527,17 +641,16 @@ to { opacity: 1; transform: scale(1) translateY(0); }
 .lens-caption { font-family: 'Spectral', 'Noto Serif SC', serif; font-style: italic; font-size: 15px; color: var(--soft-ink); margin-bottom: 12px; }
 /* 摄影区操作提示分端:桌面是悬停+滚轮,手机是滑动+点击,说法必须各自准确 */
 .on-mob { display: none; }
-#kcWrap{ --bg:var(--paper); --dim:rgba(78,66,55,0.32); --card-h:min(58vh,540px); --gap:6vw; position:relative; height:calc(var(--card-h) + 150px); margin:0 -40px; overflow:hidden; }
-/* max-height 是防御性的:容器 overflow:hidden 会裁掉 .on 的绿圈(它比按钮外扩 4px),
-   留出 16px 余量,窗口被压到极矮时数字栏收缩而不是让绿圈被吞。常规尺寸下不生效。 */
-#kcWrap .rail{position:absolute;left:26px;top:50%;transform:translateY(-50%);z-index:30; display:flex;flex-direction:column;gap:10px; max-height:calc(100% - 16px)}
-#kcWrap .rail button{position:relative;background:none;border:none;cursor:pointer; font-family:'DM Mono',monospace;font-weight:500;font-size:12px;color:var(--dim); transition:color .35s;padding:3px 6px;line-height:1}
+#kcWrap{ --bg:var(--paper); --dim:rgba(78,66,55,0.32); --card-h:min(58vh,540px); position:relative; height:calc(var(--card-h) + 150px); margin:0 -40px; overflow:hidden; }
+/* 数字索引只显示中间一段；当前作品随轮播自动移到可见区域。 */
+#kcWrap .rail{position:absolute;left:26px;top:50%;transform:translateY(-50%);z-index:30;display:flex;flex-direction:column;gap:8px;width:52px;height:min(440px, calc(100% - 28px));padding:20px 8px;overflow-y:auto;scrollbar-width:none;-webkit-mask-image:linear-gradient(to bottom,transparent,#000 20px,#000 calc(100% - 20px),transparent);mask-image:linear-gradient(to bottom,transparent,#000 20px,#000 calc(100% - 20px),transparent)}
+#kcWrap .rail button{position:relative;flex:none;min-height:22px;background:none;border:none;cursor:pointer;font-family:'DM Mono',monospace;font-weight:500;font-size:12px;color:var(--dim);transition:color .35s;padding:3px 6px;line-height:1}
 #kcWrap .rail button.on{color:var(--ink)}
 #kcWrap .rail button.on::after{content:"";position:absolute;inset:-4px -8px; border:1.4px solid var(--accent);border-radius:50%;transform:rotate(-4deg)}
-/* 窗口被拖到极矮时(容器已放不下 13 格+绿圈余量),数字栏改为按容器高度均分,与移动端同一套办法 */
+/* 窗口较矮时数字栏可独立滚动，保留每个数字的点击区域 */
 @media (max-height: 420px){
-  #kcWrap .rail{top:0;bottom:0;transform:none;justify-content:center;gap:0;padding:8px 0;max-height:none}
-  #kcWrap .rail button{flex:1 1 0;min-height:0;max-height:44px;padding:0 6px}
+  #kcWrap .rail{top:0;bottom:0;height:auto;transform:none;justify-content:flex-start;gap:0;padding:20px 4px}
+  #kcWrap .rail button{flex:0 0 44px;min-height:44px;padding:0 6px}
 }
 #kcWrap .stage{position:absolute;inset:0}
 #kcWrap .card{position:absolute;top:50%;cursor:pointer;will-change:transform;visibility:hidden}
@@ -547,19 +660,21 @@ to { opacity: 1; transform: scale(1) translateY(0); }
 #kcWrap .card .cap{position:absolute;left:-40px;top:42%;z-index:2;line-height:1.05; text-transform:uppercase;pointer-events:none;white-space:nowrap}
 #kcWrap .card .cap .t{font-family:'Typewr','Noto Serif SC',serif;font-size:clamp(15px,1.5vw,22px);color:var(--ink);text-shadow:0 1px 0 rgba(243,241,233,0.55)}
 #kcWrap .card .cap .s{font-family:'Spectral','Noto Serif SC',serif;font-style:italic;font-size:clamp(15px,1.5vw,22px);color:var(--muted)}
-#kcWrap .detail{position:fixed;inset:0;z-index:2000;background:var(--bg); opacity:0;pointer-events:none;transition:opacity .45s ease; display:flex;align-items:center}
+#kcWrap .detail{position:fixed;inset:0;z-index:2000;background:var(--bg); opacity:0;pointer-events:none;transition:opacity .45s ease; display:flex;align-items:center;touch-action:pan-y pinch-zoom}
 #kcWrap .detail.open{opacity:1;pointer-events:auto}
 #kcWrap .detail .info{flex:0 0 26%;padding-left:8%;z-index:3; text-transform:uppercase;line-height:1.05; transform:translateY(16px);opacity:0;transition:all .6s .1s ease}
 #kcWrap .detail.open .info{transform:none;opacity:1}
 #kcWrap .info .t{font-family:'Typewr','Noto Serif SC',serif;font-size:clamp(18px,1.9vw,28px);color:var(--ink)}
 #kcWrap .info .s{font-family:'Spectral','Noto Serif SC',serif;font-style:italic;font-size:clamp(18px,1.9vw,28px);color:var(--muted);text-transform:none}
 #kcWrap .info .specs{margin-top:20px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.16em; font-weight:400;color:var(--soft-ink);line-height:2}
+#kcWrap .info .detail-hint{margin-top:28px;font-family:'DM Mono','Noto Serif SC',monospace;font-size:10px;letter-spacing:.1em;line-height:1.6;color:var(--muted);text-transform:none}
 #kcWrap .detail .imgbox{flex:1;height:100%;display:flex;align-items:center; justify-content:center;padding:6vh 5vw 12vh}
 #kcWrap .detail .imgbox img{max-width:100%;max-height:100%;width:auto;height:auto; display:block;border-radius:8px;box-shadow:0 30px 70px rgba(60,50,30,0.2);transform:scale(1.04);transition:transform 1s cubic-bezier(.2,.8,.2,1)}
 #kcWrap .detail.open .imgbox img{transform:scale(1)}
-#kcWrap .strip{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:2005; display:none;gap:5px}
+#kcWrap .strip{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:2005; display:none;gap:5px;max-width:calc(100vw - 24px);overflow-x:auto;overflow-y:hidden;scrollbar-width:none;padding:2px}
+#kcWrap .strip::-webkit-scrollbar,#kcWrap .rail::-webkit-scrollbar{display:none}
 #kcWrap .detail.open ~ .strip{display:flex}
-#kcWrap .strip button{height:30px;border:none;cursor:pointer;opacity:.5;padding:0;background:none; outline:1.5px solid transparent;transition:opacity .3s;border-radius:2px;overflow:hidden}
+#kcWrap .strip button{height:30px;flex:none;border:none;cursor:pointer;opacity:.5;padding:0;background:none; outline:1.5px solid transparent;transition:opacity .3s;border-radius:2px;overflow:hidden}
 #kcWrap .strip button img{display:block;height:100%;width:auto}
 #kcWrap .strip button.on{opacity:1;outline-color:var(--accent)}
 /* 看大图时:#offhours 自带 z-index:5 会把详情层的 z-index:2000 关在自己的层叠上下文里,
@@ -567,6 +682,7 @@ to { opacity: 1; transform: scale(1) translateY(0); }
    抬升本区块并隐藏导航——全屏看图时导航本就多余。 */
 body.lens-open #offhours{z-index:300}
 body.lens-open #topNav{opacity:0;pointer-events:none}
+body.lens-open{overflow:hidden}
 #topNav{transition:opacity .3s ease}
 #kcWrap .close{position:fixed;top:20px;right:28px;z-index:2010;background:none; border:1.5px solid var(--ink);color:var(--ink);width:42px;height:42px;border-radius:50%; cursor:pointer;font-size:15px;display:none;transition:background .3s,color .3s}
 #kcWrap .close:hover{background:var(--ink);color:var(--paper)}
@@ -658,6 +774,7 @@ to { opacity: 1; transform: none; }
 @keyframes rvIn { from { opacity: 0.25; transform: translateY(26px); }
 to { opacity: 1; transform: none; }
 }
+.section-header, #starters .intro-portrait, #unfolding .unfold-grid, #offhours .hobby-fan, #checkout .receipt { translate: 0 var(--scroll-drift, 0px); }
 }
 .project-facts { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px 28px; margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--light-line); }
 .project-facts label { display: block; font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--muted); margin-bottom: 5px; }
@@ -675,6 +792,14 @@ to { opacity: 1; transform: none; }
 .stagger.show > *:nth-child(7) { animation-delay: 0.47s; }
 .stagger.show > *:nth-child(8) { animation-delay: 0.54s; }
 @media (max-width: 1180px) { .pill-link { padding: 10px 11px; font-size: 9px; letter-spacing: 0.08em; }
+}
+@media (min-width: 821px) and (max-width: 1050px) {
+  #topNav { top: 14px; padding: 0 14px; justify-content: flex-end; }
+  .pill-nav { display: none; position: absolute; top: 54px; right: 14px; flex-direction: column; align-items: stretch; border-radius: 20px; padding: 12px; gap: 2px; }
+  .pill-nav.open { display: flex; }
+  .pill-link { justify-content: flex-start; padding: 12px 18px; }
+  .pill-sep, .pill-top { display: none; }
+  .menu-btn { display: flex; }
 }
 @media (max-width: 820px) { #topNav { top: 14px; padding: 0 14px; justify-content: flex-end; }
 .pill-nav { display: none; position: absolute; top: 54px; right: 14px; flex-direction: column; align-items: stretch; border-radius: 20px; padding: 12px; gap: 2px; }
@@ -697,12 +822,13 @@ to { opacity: 1; transform: none; }
 .check-note { margin-left: 0; width: 100%; text-align: left; padding-left: 48px; margin-top: 4px; font-size: 14px; line-height: 1.6; }
 .main-slide { grid-template-columns: 1fr; }
 .main-slide-body { padding: 32px 26px; }
+.soil-links a { font-size: 14px; padding: 10px 0; }
 .pstack-card { padding: 30px 24px; }
 .pstack-card .project-grid { grid-template-columns: 1fr; gap: 24px; }
 .pstack-card .project-meta-list { border-left: none; border-top: 1px solid rgba(78,66,55,0.18); padding-left: 0; padding-top: 22px; }
 .pstack-card h3 { max-width: 100%; font-size: 24px; }
 .pstack-bignum { font-size: 44px; top: 26px; right: 24px; }
-#kcWrap{--card-h:44vh;--gap:8vw;margin:0 -20px}
+#kcWrap{--card-h:44vh;margin:0 -20px}
 #kcWrap .rail{left:10px}
 /* 竖构图大图:imgbox 原来是 height:100%(整个视口高),但它上方还有文字信息栏,
    于是整体被顶下去、底部被切。改为只吃掉剩余空间(min-height:0 才允许收缩),
@@ -711,6 +837,7 @@ to { opacity: 1; transform: none; }
 #kcWrap .detail .info{flex:0 0 auto;padding:76px 24px 0;align-self:flex-start}
 #kcWrap .detail .imgbox{flex:1 1 auto;min-height:0;height:auto;width:100%;padding:2vh 4vw 56px}
 #kcWrap .detail .imgbox img{max-height:100%;max-width:100%}
+#kcWrap .info .detail-hint{display:none}
 #kcWrap .strip{bottom:auto;top:calc(100dvh - 46px)}
 .checkout-wrap { grid-template-columns: 1fr; gap: 36px; }
 .checkout-left { padding-bottom: 0; }
@@ -753,9 +880,9 @@ footer:hover .footer-nav, footer:focus-within .footer-nav { justify-self: start;
 .scroll-cue { padding: 6px 16px; }
 .case-trigger { padding: 13px 0; }
 .footer-nav a { padding: 15px 0; }
-/* 数字栏：撑满容器高度后由 flex 均分，绝不溢出被裁；单格最大 44px */
-#kcWrap .rail { top: 0; bottom: 0; transform: none; justify-content: center; gap: 0; padding: 8px 0; max-height: none; }
-#kcWrap .rail button { flex: 1 1 0; min-height: 0; max-height: 44px; min-width: 44px; padding: 0; margin: 0; display: inline-flex; align-items: center; justify-content: center; }
+/* 数字栏独立滚动，新增作品后仍保留完整的触摸区域 */
+#kcWrap .rail { top: 0; bottom: 0; height: auto; transform: none; justify-content: flex-start; gap: 0; width: 44px; padding: 20px 0; }
+#kcWrap .rail button { flex: 0 0 44px; min-height: 44px; min-width: 44px; padding: 0; margin: 0; display: inline-flex; align-items: center; justify-content: center; }
 .lb-close, .lb-arrow { width: 46px; height: 46px; }
 .tw-row { padding: 15px 0; }
 .menu-btn { width: 46px; height: 46px; }
@@ -781,6 +908,7 @@ footer:hover .footer-nav, footer:focus-within .footer-nav { justify-self: start;
       <a href="#starters" class="pill-link" data-sec="starters"><span class="pill-mask"><span class="pill-label"><span>The Core</span><span>The Core</span></span></span></a>
       <a href="#mains" class="pill-link" data-sec="mains"><span class="pill-mask"><span class="pill-label"><span>The Soil</span><span>The Soil</span></span></span></a>
       <a href="#specials" class="pill-link" data-sec="specials"><span class="pill-mask"><span class="pill-label"><span>The Petals</span><span>The Petals</span></span></span></a>
+      <a href="#unfolding" class="pill-link" data-sec="unfolding"><span class="pill-mask"><span class="pill-label"><span>The Unfolding</span><span>The Unfolding</span></span></span></a>
       <a href="#sides" class="pill-link" data-sec="sides"><span class="pill-mask"><span class="pill-label"><span>The Veins</span><span>The Veins</span></span></span></a>
       <a href="#offhours" class="pill-link" data-sec="offhours"><span class="pill-mask"><span class="pill-label"><span>The Aura</span><span>The Aura</span></span></span></a>
       <a href="#checkout" class="pill-link" data-sec="checkout"><span class="pill-mask"><span class="pill-label"><span>Pollinate</span><span>Pollinate</span></span></span></a>
@@ -799,7 +927,9 @@ footer:hover .footer-nav, footer:focus-within .footer-nav { justify-self: start;
     <div class="hero-bg-overlay"></div>
 
     <div class="hero-content">
-      <img class="hero-title-img" src="assets/images/hero-title-petal-v2.png" alt="Sylvie Huang — Personal Website · Petal — Distinct in detail, complete in bloom." />
+      <div class="hero-tilt">
+        <img class="hero-title-img" src="assets/images/hero-title-petal-v2.png" alt="Sylvie Huang — Personal Website · Petal — Distinct in detail, complete in bloom." />
+      </div>
     </div>
 
     <a href="#starters" class="scroll-cue" aria-label="Scroll down">
@@ -816,7 +946,7 @@ footer:hover .footer-nav, footer:focus-within .footer-nav { justify-self: start;
     <div class="section-header">
       <span class="section-num">— 01</span>
       <h2 class="section-name" style="font-family: &quot;Playfair Display&quot;">Concept Manifesto <span class="section-name-sub">/ 核心宣言</span></h2>
-      <span class="section-divider"></span>
+
     </div>
     <div class="manifesto-body">
       <p class="manifesto-line">A petal is not the whole, but a <em>distinct facet</em> of a blooming process.</p>
@@ -830,7 +960,7 @@ footer:hover .footer-nav, footer:focus-within .footer-nav { justify-self: start;
     <div class="section-header">
       <span class="section-num">— 02</span>
       <h2 class="section-name" style="font-family: &quot;Playfair Display&quot;">The Core <span class="section-name-sub" style="font-family: Righteous">/ 关于我</span></h2>
-      <span class="section-divider"></span>
+
     </div>
 
     <div class="starter-intro">
@@ -911,7 +1041,7 @@ footer:hover .footer-nav, footer:focus-within .footer-nav { justify-self: start;
       <span class="section-num">— 03</span>
       <h2 class="section-name" style="font-family: &quot;Playfair Display&quot;">The Soil <span class="section-name-sub">/ 实习经历</span></h2>
       <p class="section-sub">扎根商业土壤，让策略落地生根。</p>
-      <span class="section-divider"></span>
+
     </div>
 
     <div class="mains-carousel" id="mainsCarousel">
@@ -949,6 +1079,12 @@ footer:hover .footer-nav, footer:focus-within .footer-nav { justify-self: start;
               <h3 class="soil-title">让大湾区的好内容，被首页看见</h3>
               <div class="soil-role">新媒体 · 实习生</div>
               <p>参与跨部门联合采访，主笔人物专访及多篇品牌合作稿件，其中香港设计师专访获<strong>南方+ APP 开屏展示</strong>；对接粤海集团等商业客户，为商业内容生产提供素材支持；迭代周度行业热点监测库，新增舆情案例分析与灵感选题模块，供<strong>5 个核心业务部门</strong>使用。</p>
+              <div class="soil-links" aria-label="南方日报内容案例">
+                <a href="https://m.toutiao.com/group/7260115245337739815/" target="_blank" rel="noopener noreferrer" aria-label="内容01，今日头条，在新标签页打开">内容01 ↗</a>
+                <a href="https://static.nfapp.southcn.com/content/202307/06/c7869382.html?colID=0&amp;firstColID=1206&amp;appversion=11300&amp;enterColumnId=&amp;from=weChatMessage" target="_blank" rel="noopener noreferrer" aria-label="内容02，南方+，在新标签页打开">内容02 ↗</a>
+                <a href="https://mp.weixin.qq.com/s/yDRS_nsnCbwdNLg-QcTsfQ" target="_blank" rel="noopener noreferrer" aria-label="内容03，微信，在新标签页打开">内容03 ↗</a>
+                <a href="https://static.nfapp.southcn.com/content/202307/15/c7898206.html?colID=0&amp;firstColID=1708&amp;appversion=10200&amp;enterColumnId=0&amp;from=weChatMessage&amp;date=bnVsbA==&amp;layer=2" target="_blank" rel="noopener noreferrer" aria-label="内容04，南方+，在新标签页打开">内容04 ↗</a>
+              </div>
               <div class="soil-stats">
                 <div class="stat a"><span class="lbl">双平台总阅读量</span><b class="num" data-to="6000" data-suf="+">0+</b></div>
               </div>
@@ -993,7 +1129,7 @@ footer:hover .footer-nav, footer:focus-within .footer-nav { justify-self: start;
     <div class="section-header">
       <span class="section-num">— 04</span>
       <h2 class="section-name" style="font-family: &quot;Playfair Display&quot;">The Petals <span class="section-name-sub">/ 项目</span></h2>
-      <span class="section-divider"></span>
+
     </div>
 
     <p class="specials-intro">多维实践切片，回应真实商业命题。</p>
@@ -1008,18 +1144,18 @@ footer:hover .footer-nav, footer:focus-within .footer-nav { justify-self: start;
         <div class="pj-name">奥利奥跨文化整合营销全案 · Strategic Advertising Campaign</div>
         <div class="project-grid">
           <div class="project-desc">
-            <p class="pj-lede"><b>Research</b>主导 <strong>400+ 份</strong>一手问卷调研与二手资料交叉验证，识别「品类认知不足」与「品牌形象老化」两大核心痛点；通过「品类-竞品-品牌画像」确定目标受众，为 Big Idea「Multi-layered Healing」提供洞察依据。</p>
-            <p class="pj-lede"><b>KOL Matrix</b>基于模拟预算，为三大平台规划 <strong>103 位达人矩阵</strong>；确立「头部引爆（31%）、腰部种草（44.5%）、尾部/KOC 口碑（6%）」的橄榄型结构，并输出 50% 预算压缩情景下的配置优化方案。</p>
-            <p class="pj-lede"><b>Team Leadership</b>统筹 5 人团队分工、任务拆解、进度管控；负责组织每周导师沟通。</p>
+            <p class="pj-lede"><b>Research &amp; Insight</b>参与市场、竞品及品牌资料调研，与组员共同完成400份问卷收集；主导一手与二手资料交叉验证，识别并排序产品认知不足、尝试动机不足等关键问题。基于品牌既有目标人群，主导细化3类消费者画像，为内容主题、消费场景及渠道选择提供依据。</p>
+            <p class="pj-lede"><b>Live-stream Planning</b>独立策划小红书「李诞×奥利奥」直播，以「酪一酪那些‘躺不平卷不动’世代的生存姿势」为主题，设计涵盖“预热引流—开场 Hook—用户故事—产品体验（ASMR）—福利转化”的90分钟执行 SOP，输出兼顾情绪关联与转化效率的内容电商方案。</p>
+            <p class="pj-lede"><b>Team Leadership</b>统筹5人团队任务分工、进度管理及每周导师沟通；负责全案内容整合与逻辑校核，并根据评审反馈组织修订，完成营销全案提报。</p>
             <div class="pj-stats">
               <div class="stat a"><span class="lbl">12 支团队中排名</span><b class="num">第 1</b></div>
-              <div class="stat b"><span class="lbl">回收问卷份数</span><b class="num" data-to="400" data-suf="+">400+</b></div>
+              <div class="stat b"><span class="lbl">回收问卷份数</span><b class="num" data-to="400">400</b></div>
             </div>
             <div class="project-facts">
-              <div><label>Role</label><div class="fval">Leader</div></div>
-              <div><label>Tools</label><div class="fval">Canva, PS</div></div>
-              <div><label>Duration</label><div class="fval">5 Months</div></div>
-              <div><label>Outcome</label><div class="fval">年度最佳项目奖 &amp; A 评级（留校示范案例）</div></div>
+              <div><label>Role</label><div class="fval">5人团队组长</div></div>
+              <div><label>Tools</label><div class="fval">Canva</div></div>
+              <div><label>Period</label><div class="fval">2024.12—2025.05</div></div>
+              <div><label>Outcome</label><div class="fval">年度最佳项目奖、A评级入选留校示范案例</div></div>
             </div>
           </div>
           <div class="project-meta-list">
@@ -1175,13 +1311,64 @@ footer:hover .footer-nav, footer:focus-within .footer-nav { justify-self: start;
     </div>
   </section>
 
+  <!-- ============ THE UNFOLDING ============ -->
+  <section class="section reveal" id="unfolding">
+    <div class="section-header" style="font-family: &quot;Playfair Display&quot;">
+      <span class="section-num">— 05</span>
+      <h2 class="section-name" style="font-family: &quot;Playfair Display&quot;">The Unfolding <span class="section-name-sub">/ 灵感发生</span></h2>
+      <p class="section-sub">一些从观察、好奇与日常里生长出来的创作。</p>
+
+    </div>
+    <div class="unfold-grid">
+      <a class="unfold-card" id="unfoldCloser" href="a-little-closer/index.html" aria-label="打开互动作品 Stay a Little">
+        <div class="unfold-cover unfold-cover--closer">
+          <div class="unfold-reel" aria-hidden="true">
+            <span class="unfold-frame" style="--a:0deg"><img src="a-little-closer/assets/17-thumb.webp" alt="" loading="lazy"></span>
+            <span class="unfold-frame" style="--a:25.714deg"><img src="a-little-closer/assets/01-thumb.webp" alt="" loading="lazy"></span>
+            <span class="unfold-frame" style="--a:51.429deg"><img src="a-little-closer/assets/04-thumb.webp" alt="" loading="lazy"></span>
+            <span class="unfold-frame" style="--a:77.143deg"><img src="a-little-closer/assets/14-thumb.webp" alt="" loading="lazy"></span>
+            <span class="unfold-frame" style="--a:102.857deg"><img src="a-little-closer/assets/09-thumb.webp" alt="" loading="lazy"></span>
+            <span class="unfold-frame" style="--a:128.571deg"><img src="a-little-closer/assets/05-thumb.webp" alt="" loading="lazy"></span>
+            <span class="unfold-frame" style="--a:154.286deg"><img src="a-little-closer/assets/18-thumb.webp" alt="" loading="lazy"></span>
+            <span class="unfold-frame" style="--a:180deg"><img src="a-little-closer/assets/16-wild-thumb.webp" alt="" loading="lazy"></span>
+            <span class="unfold-frame" style="--a:205.714deg"><img src="a-little-closer/assets/13-thumb.webp" alt="" loading="lazy"></span>
+            <span class="unfold-frame" style="--a:231.429deg"><img src="a-little-closer/assets/12-thumb.webp" alt="" loading="lazy"></span>
+            <span class="unfold-frame" style="--a:257.143deg"><img src="a-little-closer/assets/19-thumb.webp" alt="" loading="lazy"></span>
+            <span class="unfold-frame" style="--a:282.857deg"><img src="a-little-closer/assets/07-thumb.webp" alt="" loading="lazy"></span>
+            <span class="unfold-frame" style="--a:308.571deg"><img src="a-little-closer/assets/10-thumb.webp" alt="" loading="lazy"></span>
+            <span class="unfold-frame" style="--a:334.286deg"><img src="a-little-closer/assets/11-thumb.webp" alt="" loading="lazy"></span>
+            <span class="unfold-reel-hole" style="--a:12.857deg"></span><span class="unfold-reel-hole" style="--a:64.286deg"></span><span class="unfold-reel-hole" style="--a:115.714deg"></span><span class="unfold-reel-hole" style="--a:167.143deg"></span><span class="unfold-reel-hole" style="--a:218.571deg"></span><span class="unfold-reel-hole" style="--a:270deg"></span><span class="unfold-reel-hole" style="--a:321.429deg"></span>
+            <span class="unfold-reel-mark" style="--a:0deg">1</span><span class="unfold-reel-mark" style="--a:51.429deg">2</span><span class="unfold-reel-mark" style="--a:102.857deg">3</span><span class="unfold-reel-mark" style="--a:154.286deg">4</span><span class="unfold-reel-mark" style="--a:205.714deg">5</span><span class="unfold-reel-mark" style="--a:257.143deg">6</span><span class="unfold-reel-mark" style="--a:308.571deg">7</span>
+            <span class="unfold-reel-label" style="--a:25.714deg">LOOK A LITTLE LONGER</span><span class="unfold-reel-label" style="--a:77.143deg">THE WORLD WITHIN REACH</span><span class="unfold-reel-label" style="--a:128.571deg">COLLECTED ON FILM</span><span class="unfold-reel-label" style="--a:180deg">STAY WITH THE MOMENT</span><span class="unfold-reel-label" style="--a:231.429deg">HERE / NOW / TOGETHER</span><span class="unfold-reel-label" style="--a:282.857deg">A MOMENT TO KEEP</span><span class="unfold-reel-label" style="--a:334.286deg">FOLLOW THE FEELING</span>
+            <span class="unfold-reel-arrow unfold-reel-arrow--top">↑</span><span class="unfold-reel-arrow unfold-reel-arrow--bottom">↓</span>
+            <span class="unfold-reel-hub"><small>A FIELD GUIDE TO FEELING</small><strong>STAY A<br>LITTLE</strong><small>V O L . 0 1</small><i></i><em>14 MOMENTS OF BEING HERE</em></span>
+          </div>
+          <span class="unfold-corner unfold-corner--tl"></span><span class="unfold-corner unfold-corner--tr"></span><span class="unfold-corner unfold-corner--bl"></span><span class="unfold-corner unfold-corner--br"></span>
+        </div>
+        <div class="unfold-meta"><strong>Stay a Little</strong><span>进入作品 ↗</span></div>
+      </a>
+      <button class="unfold-card" id="unfoldPosterOpen" type="button" aria-haspopup="dialog" aria-controls="unfoldPosterDialog" aria-label="查看海报作品 Tenerife, 2026">
+        <div class="unfold-cover unfold-cover--tenerife">
+          <img src="assets/images/unfolding-tenerife.jpg" alt="Tenerife, 2026 海报作品" loading="lazy">
+          <span class="unfold-corner unfold-corner--tl"></span><span class="unfold-corner unfold-corner--tr"></span><span class="unfold-corner unfold-corner--bl"></span><span class="unfold-corner unfold-corner--br"></span>
+        </div>
+        <div class="unfold-meta"><strong>Tenerife, 2026</strong><span>查看作品 ↗</span></div>
+      </button>
+    </div>
+  </section>
+
+  <dialog class="unfold-poster-dialog" id="unfoldPosterDialog" aria-label="Tenerife, 2026 海报作品">
+    <div class="unfold-poster-head"><span>TENERIFE, 2026</span><button class="unfold-poster-close" type="button" aria-label="关闭海报">×</button></div>
+    <div class="unfold-poster-body"><img src="assets/images/unfolding-tenerife.jpg" alt="Tenerife, 2026 完整海报作品"></div>
+  </dialog>
+
   <!-- ============ SIDES ============ -->
   <section class="section reveal" id="sides">
     <div class="section-header" style="font-family: &quot;Playfair Display&quot;">
-      <span class="section-num">— 05</span>
+      <span class="section-num">— 06</span>
       <h2 class="section-name" style="font-family: &quot;Playfair Display&quot;">The Veins <span class="section-name-sub">/ 技能清单</span></h2>
       <p class="section-sub">底层能力脉络，驱动创意与策略落地。</p>
-      <span class="section-divider"></span>
+
     </div>
 
     <div class="check-list stagger">
@@ -1191,6 +1378,7 @@ footer:hover .footer-nav, footer:focus-within .footer-nav { justify-self: start;
         <div class="check-item"><span class="check-box">✓</span><span class="check-name">AI Models</span><span class="check-note">辅助竞品研究、资料归纳、内容创意与方案迭代</span></div>
         <div class="check-item"><span class="check-box">✓</span><span class="check-name">NotebookLM</span><span class="check-note">知识管理与研究工作流</span></div>
         <div class="check-item"><span class="check-box">✓</span><span class="check-name">Midjourney</span><span class="check-note">AI 生成式视觉探索</span></div>
+        <div class="check-item"><span class="check-box">✓</span><span class="check-name">Lovart</span><span class="check-note">AI 视觉设计与素材探索</span></div>
         <div class="check-item"><span class="check-box">✓</span><span class="check-name">Canva</span><span class="check-note">品牌物料快速产出</span></div>
         <div class="check-item"><span class="check-box">✓</span><span class="check-name">CapCut</span><span class="check-note">剪映 · 短视频剪辑</span></div>
         <div class="check-item"><span class="check-box">✓</span><span class="check-name">Photography</span><span class="check-note">数码 + 胶片</span></div>
@@ -1207,7 +1395,7 @@ footer:hover .footer-nav, footer:focus-within .footer-nav { justify-self: start;
   <!-- ============ OFF-HOURS ============ -->
   <section class="section reveal" id="offhours">
     <div class="section-header">
-      <span class="section-num">— 06</span>
+      <span class="section-num">— 07</span>
       <h2 class="section-name" style="font-family: &quot;Playfair Display&quot;">The Aura</h2>
       <p class="offhours-sub">LIFE &amp; HOBBIES</p>
     </div>
@@ -1270,9 +1458,9 @@ footer:hover .footer-nav, footer:focus-within .footer-nav { justify-self: start;
   <!-- ============ CHECKOUT ============ -->
   <section class="section reveal" id="checkout">
     <div class="section-header">
-      <span class="section-num">— 07</span>
+      <span class="section-num">— 08</span>
       <h2 class="section-name" style="font-family: &quot;Playfair Display&quot;">Pollinate <span class="section-name-sub">/ 联系方式</span></h2>
-      <span class="section-divider"></span>
+
     </div>
 
     <div class="checkout-wrap">
@@ -1350,6 +1538,7 @@ footer:hover .footer-nav, footer:focus-within .footer-nav { justify-self: start;
         <a href="#starters">The Core · 关于我</a>
         <a href="#mains">The Soil · 经历</a>
         <a href="#specials">The Petals · 项目</a>
+        <a href="#unfolding">The Unfolding · 灵感发生</a>
         <a href="#sides">The Veins · 技能</a>
         <a href="#offhours">The Aura · 爱好</a>
         <a href="#checkout">Pollinate · 联系</a>
@@ -1387,6 +1576,24 @@ footer:hover .footer-nav, footer:focus-within .footer-nav { justify-self: start;
     const pillNav = document.getElementById('pillNav');
     menuBtn?.addEventListener('click', () => pillNav.classList.toggle('open'));
     pillNav.querySelectorAll('a').forEach(a => a.addEventListener('click', () => pillNav.classList.remove('open')));
+
+    (function(){
+      const closer = document.getElementById('unfoldCloser');
+      const section = document.getElementById('unfolding');
+      closer?.addEventListener('click', () => {
+        const url = new URL(closer.href);
+        url.searchParams.set('petalOffset', String(Math.round(-section.getBoundingClientRect().top)));
+        closer.href = url.href;
+        if ('scrollRestoration' in history) history.scrollRestoration = 'auto';
+      });
+
+      const dialog = document.getElementById('unfoldPosterDialog');
+      const open = document.getElementById('unfoldPosterOpen');
+      const close = dialog?.querySelector('.unfold-poster-close');
+      open?.addEventListener('click', () => dialog.showModal());
+      close?.addEventListener('click', () => dialog.close());
+      dialog?.addEventListener('click', e => { if (e.target === dialog) dialog.close(); });
+    })();
 
     (function(){
       const cv = document.getElementById('rippleCanvas');
@@ -1439,8 +1646,9 @@ footer:hover .footer-nav, footer:focus-within .footer-nav { justify-self: start;
     const pillTop = document.getElementById('pillTop');
     const pillLinks = [...document.querySelectorAll('.pill-link')];
     const secIds = pillLinks.map(l => l.dataset.sec);
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
-    pillTop.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+    pillTop.addEventListener('click', () => window.scrollTo({ top: 0, behavior: reduceMotion.matches ? 'instant' : 'smooth' }));
 
     function onScroll() {
       const sc = window.scrollY;
@@ -1456,7 +1664,7 @@ footer:hover .footer-nav, footer:focus-within .footer-nav { justify-self: start;
       }
       pillLinks.forEach(l => l.classList.toggle('active', l.dataset.sec === active));
 
-      if (sc < window.innerHeight + 200) {
+      if (!reduceMotion.matches && sc < window.innerHeight + 200) {
         heroBg.style.transform = `scale(1.08) translateY(${sc * 0.18}px)`;
         const p = Math.min(1, sc / (window.innerHeight * 0.85));
         const hc = document.querySelector('.hero-content');
@@ -1471,6 +1679,35 @@ footer:hover .footer-nav, footer:focus-within .footer-nav { justify-self: start;
     }
     window.addEventListener('scroll', onScroll, { passive: true });
     onScroll();
+
+    // 像纸面轻微受力：只做平面倾角，不叠加三维翻转或弹跳。
+    (function(){
+      const area = document.querySelector('.hero-content');
+      const title = area?.querySelector('.hero-tilt');
+      if (!title) return;
+      const canTilt = matchMedia('(min-width: 821px) and (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference)');
+      let frame = 0;
+      let position = 0;
+      const clamp = value => Math.max(-1, Math.min(1, value));
+      const render = () => {
+        frame = 0;
+        const angle = (position * .85).toFixed(2);
+        const depth = (1.25 + Math.abs(position) * .8).toFixed(2);
+        title.style.transform = `translateY(${depth}px) rotate(${angle}deg)`;
+      };
+      const release = () => { cancelAnimationFrame(frame); frame = 0; title.style.removeProperty('transform'); };
+      area.addEventListener('pointermove', event => {
+        if (!canTilt.matches) return;
+        const rect = area.getBoundingClientRect();
+        position = clamp((event.clientX - rect.left - rect.width / 2) / (rect.width / 2));
+        if (!frame) frame = requestAnimationFrame(render);
+      });
+      area.addEventListener('pointerleave', release);
+      addEventListener('blur', release);
+      canTilt.addEventListener('change', () => {
+        if (!canTilt.matches) release();
+      });
+    })();
 
     const reveals = document.querySelectorAll('.reveal, .stagger');
     const obs = new IntersectionObserver((entries) => {
@@ -1503,6 +1740,75 @@ footer:hover .footer-nav, footer:focus-within .footer-nav { justify-self: start;
       els.forEach(el => rvObs.observe(el));
       const fan = document.getElementById('hobbyFan');
       if (fan) rvObs.observe(fan);
+    })();
+
+    // 滚动时让标题与少数图像产生轻微景深；仅计算视口附近元素。
+    (function(){
+      const motion=matchMedia('(prefers-reduced-motion: no-preference)');
+      const compact=matchMedia('(max-width: 820px)');
+      const items=[...document.querySelectorAll('.section-header, #starters .intro-portrait, #unfolding .unfold-grid, #offhours .hobby-fan, #checkout .receipt')];
+      if(!items.length) return;
+      const visible=new Set();
+      let frame=0;
+      function paint(){
+        frame=0;
+        if(!motion.matches) return;
+        visible.forEach(el=>{
+          const previous=parseFloat(el.style.getPropertyValue('--scroll-drift'))||0;
+          const rect=el.getBoundingClientRect();
+          const center=rect.top-previous+rect.height/2;
+          const phase=Math.max(-1,Math.min(1,(center-innerHeight/2)/((innerHeight+rect.height)/2)));
+          const amount=compact.matches?(el.classList.contains('section-header')?6:10):(el.classList.contains('section-header')?12:18);
+          el.style.setProperty('--scroll-drift',`${(-phase*amount).toFixed(1)}px`);
+        });
+      }
+      function schedule(){ if(!frame && motion.matches && visible.size) frame=requestAnimationFrame(paint); }
+      const observer=new IntersectionObserver(entries=>{
+        entries.forEach(entry=>entry.isIntersecting?visible.add(entry.target):visible.delete(entry.target));
+        schedule();
+      },{rootMargin:'20% 0px'});
+      items.forEach(el=>observer.observe(el));
+      addEventListener('scroll',schedule,{passive:true});
+      addEventListener('resize',schedule);
+      motion.addEventListener('change',()=>{
+        if(!motion.matches){
+          cancelAnimationFrame(frame);frame=0;
+          items.forEach(el=>el.style.removeProperty('--scroll-drift'));
+        } else schedule();
+      });
+    })();
+
+    // 作品像胶片一样被轻轻带动；只在桌面、作品可见且用户滚动时计算。
+    (function(){
+      const section = document.getElementById('unfolding');
+      const reel = section?.querySelector('.unfold-reel');
+      const cards = section?.querySelectorAll('.unfold-card');
+      if (!section || !reel || !cards?.length) return;
+      const canTurn = matchMedia('(min-width: 821px) and (hover: hover) and (prefers-reduced-motion: no-preference)');
+      let visible = false, frame = 0;
+      const update = () => {
+        frame = 0;
+        if (!visible || !canTurn.matches) return;
+        const rect = section.getBoundingClientRect();
+        const center = rect.top + rect.height * .5;
+        const turn = Math.max(-6, Math.min(6, (innerHeight * .5 - center) / innerHeight * 8));
+        reel.style.setProperty('--scroll-turn', `${turn.toFixed(2)}deg`);
+      };
+      const schedule = () => { if (!frame && visible && canTurn.matches) frame = requestAnimationFrame(update); };
+      const observer = new IntersectionObserver(entries => {
+        visible = entries[0].isIntersecting;
+        if (visible) {
+          cards.forEach(card => card.classList.add('motion-in'));
+          schedule();
+        }
+      }, { threshold: .08 });
+      observer.observe(section);
+      addEventListener('scroll', schedule, { passive: true });
+      addEventListener('resize', schedule);
+      canTurn.addEventListener('change', () => {
+        if (!canTurn.matches) reel.style.removeProperty('--scroll-turn');
+        else schedule();
+      });
     })();
 
     const twContent = document.getElementById('twContent');
@@ -1634,13 +1940,23 @@ footer:hover .footer-nav, footer:focus-within .footer-nav { justify-self: start;
       {title:"Dolomiti", sub:"意大利", src:"assets/photos/p04w.jpg", specs:["Dolomites · Italy"]},
       {title:"Cortile", sub:"意大利", src:"assets/photos/p05w.jpg", specs:["Italy"]},
       {title:"樱花", sub:"阿姆斯特丹", src:"assets/photos/p06w.jpg", specs:["Amsterdam · NL"]},
-      {title:"日落", sub:"北海", src:"assets/photos/p07w.jpg", specs:["North Sea"]},
+      {title:"日落", sub:"海牙海岸", src:"assets/photos/p07w.jpg", specs:["The Hague coast"]},
       {title:"Green Park", sub:"伦敦", src:"assets/photos/p08w.jpg", specs:["London · UK"]},
       {title:"雪原伙伴", sub:"挪威", src:"assets/photos/p09w.jpg", specs:["Norway"]},
       {title:"Via Milano", sub:"米兰", src:"assets/photos/p10w.jpg", specs:["Milano · Italy"]},
       {title:"Galleria", sub:"米兰", src:"assets/photos/p11w.jpg", specs:["Milano · Italy"]},
       {title:"Galleria V. E. II", sub:"米兰", src:"assets/photos/p12w.jpg", specs:["Milano · Italy"]},
-      {title:"Kelly's", sub:"伦敦", src:"assets/photos/p13w.jpg", specs:["London · UK"]}
+      {title:"街巷钟楼", sub:"旅途中", src:"assets/photos/p13w.jpg", specs:["City study"]},
+      {title:"雪峰之上", sub:"阿尔卑斯", src:"assets/photos/p14w.jpg", specs:["The Alps"]},
+      {title:"暮色街道", sub:"挪威", src:"assets/photos/p15w.jpg", specs:["Tromsø · Norway"]},
+      {title:"蓝调时刻", sub:"挪威", src:"assets/photos/p16w.jpg", specs:["Tromsø · Norway"]},
+      {title:"Trafalgar Theatre", sub:"伦敦", src:"assets/photos/p17w.jpg", specs:["London · UK"]},
+      {title:"街边片刻", sub:"旅途中", src:"assets/photos/p18w.jpg", specs:["Everyday scenes"]},
+      {title:"Kelly's", sub:"伦敦", src:"assets/photos/p19w.jpg", specs:["London · UK"]},
+      {title:"林间同行", sub:"多洛米蒂", src:"assets/photos/p20w.jpg", specs:["Dolomites · Italy"]},
+      {title:"山间小憩", sub:"多洛米蒂", src:"assets/photos/p21w.jpg", specs:["Dolomites · Italy"]},
+      {title:"街角马车", sub:"旅途中", src:"assets/photos/p22w.jpg", specs:["On the road"]},
+      {title:"雪山前", sub:"阿尔卑斯", src:"assets/photos/p23w.jpg", specs:["The Alps"]}
     ];
 
     const stage=document.getElementById('stage');
@@ -1679,6 +1995,7 @@ footer:hover .footer-nav, footer:focus-within .footer-nav { justify-self: start;
     }
 
     const railBtns=[];
+    let lastBestI=-1;
     WORKS.forEach((_,i)=>{
       const b=document.createElement('button');
       b.type='button';
@@ -1711,20 +2028,34 @@ footer:hover .footer-nav, footer:focus-within .footer-nav { justify-self: start;
     });
     addEventListener('resize',()=>{ if(loaded>=N) measure(); });
 
-    /* 嵌入长页面:滚轮/触摸监听移到区块容器上,仅悬停区块内生效 */
-    /* 滚轮接管带"逃逸预算"：连续同向滚动累计超过阈值即释放，让页面继续上下滚，不再困住 */
+    /* 画面和数字索引共享滚轮预算；超出后把滚动还给长页面。 */
     let hovering=false, escAccum=0, escDir=0, lastWheelT=0;
-    stage.addEventListener('mouseenter',()=>hovering=true);
-    stage.addEventListener('mouseleave',()=>{hovering=false;escAccum=0;escDir=0;});
-    stage.addEventListener('wheel',e=>{
-      if(open||!hovering) return;                 // 未悬停/详情态 → 页面正常滚动
-      const now=performance.now(), dir=Math.sign(e.deltaY);
-      if(dir!==escDir || now-lastWheelT>320) escAccum=0;   // 反向或停顿即重置预算
-      escDir=dir; lastWheelT=now; escAccum+=Math.abs(e.deltaY);
-      if(escAccum>620) return;                     // 预算耗尽 → 释放滚轮，页面滚走本区块
+    function resetWheelBudget(){ escAccum=0; escDir=0; }
+    function galleryWheel(e, overRail){
+      if(open || e.ctrlKey || e.metaKey || Math.abs(e.deltaX)>Math.abs(e.deltaY)) return;
+      const delta=e.deltaY*(e.deltaMode===1?16:e.deltaMode===2?innerHeight:1);
+      if(!delta) return;
+      const now=performance.now(), dir=Math.sign(delta);
+      if(dir!==escDir || now-lastWheelT>320) escAccum=0;
+      escDir=dir; lastWheelT=now; escAccum+=Math.abs(delta);
+      if(escAccum>620){
+        if(overRail){
+          e.preventDefault(); // 避免数字栏自己吃掉滚轮，页面继续正常前进
+          window.scrollBy(0,delta);
+        }
+        return;
+      }
       e.preventDefault();
-      target+=e.deltaY*0.9; resetIdle();
+      target+=delta*0.9; resetIdle();
+    }
+    stage.addEventListener('mouseenter',()=>hovering=true);
+    stage.addEventListener('mouseleave',()=>{hovering=false;resetWheelBudget();});
+    stage.addEventListener('wheel',e=>{
+      if(hovering) galleryWheel(e,false);
     },{passive:false});
+    rail.addEventListener('wheel',e=>galleryWheel(e,true),{passive:false});
+    rail.addEventListener('mouseleave',resetWheelBudget);
+    rail.addEventListener('touchstart',resetIdle,{passive:true});
     let tx=null;
     stage.addEventListener('touchstart',e=>tx=e.touches[0].clientX,{passive:true});
     stage.addEventListener('touchmove',e=>{ if(tx!==null&&!open){target+=(tx-e.touches[0].clientX)*1.4;tx=e.touches[0].clientX;resetIdle();} },{passive:true});
@@ -1760,6 +2091,12 @@ footer:hover .footer-nav, footer:focus-within .footer-nav { justify-self: start;
           if(d<bestD){bestD=d;bestI=c.i;}
         });
         railBtns.forEach((b,i)=>b.classList.toggle('on',i===bestI));
+        if(bestI!==lastBestI){
+          lastBestI=bestI;
+          if(rail.scrollHeight>rail.clientHeight){
+            rail.scrollTo({top:railBtns[bestI].offsetTop-rail.clientHeight/2+22,behavior:reduced?'auto':'smooth'});
+          }
+        }
       }
       raf = requestAnimationFrame(loop);
     }
@@ -1775,31 +2112,71 @@ footer:hover .footer-nav, footer:focus-within .footer-nav { justify-self: start;
     }, { rootMargin: '200px 0px' }).observe(stage);
 
     /* ===== 详情 ===== */
+    const wrap=document.getElementById('kcWrap');
     const strip=document.getElementById('strip');
+    const detailImg=document.getElementById('detailImg');
+    let detailIndex=0, detailWheel=0, detailWheelAt=0, detailStepAt=-Infinity;
+    const stripBtns=WORKS.map((w,i)=>{
+      const b=document.createElement('button');
+      b.type='button';
+      b.setAttribute('aria-label', `查看第 ${i+1} 张作品：${w.title}`);
+      b.innerHTML=`<img src="${w.src}" alt="">`;
+      b.addEventListener('click',()=>{detailWheel=0;detailStepAt=-Infinity;openDetail(i);});
+      strip.appendChild(b);
+      return b;
+    });
     function openDetail(i){
-      const w=WORKS[i];open=true;
-      document.getElementById('detailImg').src=w.src;
+      detailIndex=(i+N)%N;
+      const w=WORKS[detailIndex];open=true;
+      detailImg.src=w.src.replace(/w\.jpg$/, '.jpg');
+      detailImg.alt=w.title;
       document.getElementById('info').innerHTML=
         `<div class="t">${w.title}</div><div class="s">${w.sub}</div>
-         <div class="specs">${w.specs.join('<br>')}</div>`;
-      strip.innerHTML='';
-      WORKS.forEach((ww,j)=>{
-        const b=document.createElement('button');
-        b.innerHTML=`<img src="${ww.src}" alt="">`;
-        if(j===i)b.classList.add('on');
-        b.addEventListener('click',()=>openDetail(j));
-        strip.appendChild(b);
-      });
+         <div class="specs">${w.specs.join('<br>')}</div>
+         <div class="detail-hint">滚轮或方向键切换作品</div>`;
+      stripBtns.forEach((b,j)=>b.classList.toggle('on',j===detailIndex));
       detail.classList.add('open');detail.setAttribute('aria-hidden','false');
       document.body.classList.add('lens-open');
+      const selected=stripBtns[detailIndex];
+      if(selected) strip.scrollLeft=selected.offsetLeft-strip.clientWidth/2+selected.clientWidth/2;
     }
     function closeDetail(){
       open=false;detail.classList.remove('open');
       detail.setAttribute('aria-hidden','true');resetIdle();
       document.body.classList.remove('lens-open');
+      detailWheel=0;detailStepAt=-Infinity;
     }
+    wrap.addEventListener('wheel',e=>{
+      if(!open || e.ctrlKey || e.metaKey) return;
+      if(Math.abs(e.deltaX)>Math.abs(e.deltaY)) return;
+      e.preventDefault(); // 详情层接管纵向滚轮，横向滑动仍可浏览缩略图
+      const delta=e.deltaY*(e.deltaMode===1?16:e.deltaMode===2?innerHeight:1);
+      if(!delta) return;
+      const now=performance.now();
+      if(now-detailWheelAt>240 || Math.sign(delta)!==Math.sign(detailWheel)) detailWheel=0;
+      detailWheelAt=now;
+      detailWheel+=delta;
+      if(Math.abs(detailWheel)<80 || now-detailStepAt<360) return;
+      const direction=Math.sign(detailWheel);
+      detailWheel=0;detailStepAt=now;
+      openDetail(detailIndex+direction);
+    },{passive:false});
+    let touchX=null;
+    detail.addEventListener('touchstart',e=>{touchX=e.touches[0]?.clientX??null;},{passive:true});
+    detail.addEventListener('touchend',e=>{
+      if(touchX===null || !open) return;
+      const delta=(e.changedTouches[0]?.clientX??touchX)-touchX;
+      touchX=null;
+      if(Math.abs(delta)>55) openDetail(detailIndex-Math.sign(delta));
+    },{passive:true});
     document.getElementById('closeBtn').addEventListener('click',closeDetail);
-    addEventListener('keydown',e=>{if(e.key==='Escape'&&open)closeDetail();});
+    addEventListener('keydown',e=>{
+      if(!open) return;
+      if(e.key==='Escape') closeDetail();
+      else if(e.key==='ArrowRight' || e.key==='ArrowLeft'){
+        e.preventDefault();openDetail(detailIndex+(e.key==='ArrowRight'?1:-1));
+      }
+    });
     })();
 
     (function(){
@@ -1909,7 +2286,8 @@ footer:hover .footer-nav, footer:focus-within .footer-nav { justify-self: start;
       /* 拖拽/触控跟手：>15% 版面宽才切换，否则回弹；中途可打断动画 */
       let pid = null, sx = 0, base = 0, moved = 0;
       vp.addEventListener('pointerdown', e => {
-        if (e.target.closest('.soil-btn')) return;
+        // 链接和按钮保留浏览器原生点击；对它们设置指针捕获会把 click 改派给轮播容器。
+        if (e.target.closest('a, button')) { moved = 0; return; }
         if (swipeHint) swipeHint.classList.add('used');
         pid = e.pointerId; sx = e.clientX; base = x; moved = 0;
         cancelAnimationFrame(raf);
@@ -2320,6 +2698,7 @@ footer:hover .footer-nav, footer:focus-within .footer-nav { justify-self: start;
         c.setAttribute('cx',q.x);c.setAttribute('cy',q.y);c.setAttribute('r',4.5);
         svg.appendChild(c);nodes.push(c);
       });
+      core.classList.add('is-animated');
       onScroll();
     }
 
@@ -2342,7 +2721,9 @@ footer:hover .footer-nav, footer:focus-within .footer-nav { justify-self: start;
       tail.classList.toggle('show',eff>=0.97);
     }
 
-    addEventListener('load',build);
+    if (document.readyState === 'loading') addEventListener('DOMContentLoaded', build, {once:true});
+    else build();
+    addEventListener('load',build,{once:true});
     addEventListener('resize',()=>{clearTimeout(window.__rt);window.__rt=setTimeout(build,150);});
     let tlRaf = null;
     addEventListener('scroll',()=>{ if(!tlRaf) tlRaf=requestAnimationFrame(()=>{tlRaf=null;onScroll();}); },{passive:true});
